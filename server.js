@@ -2,10 +2,12 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const MongoClient = require('mongodb').MongoClient;
 const app = express();
+const dotenv = require('dotenv').config()
 
-MongoClient.connect('connectionString', { useUnifiedTopology: true })
+
+
+MongoClient.connect(process.env.DB_CONNECTION, { useUnifiedTopology: true })
     .then(client => {
-    console.log('Connected to Database')
     const db = client.db('Stars-Wars-Project')
     const quotesCollection = db.collection('quotes')
 
@@ -39,7 +41,7 @@ MongoClient.connect('connectionString', { useUnifiedTopology: true })
             { 
                 $set: {
                     name: req.body.name,
-                    quote: req.body.qoute
+                    quote: req.body.quote
                 }
             },
              {
@@ -47,14 +49,28 @@ MongoClient.connect('connectionString', { useUnifiedTopology: true })
             }
         )
         .then(result => {
-            console.log(result)
+            res.json('Success')
         })
         .catch(error => console.error(error))
     })
 
-    app.listen(3000, function() {
-        console.log('listening on 3000')
+    app.delete('/quotes', (req, res) => {
+        quotesCollection.deleteOne(
+            { name: req.body.name },
+        )
+        .then(result => {
+            if(result.deletedCount === 0) {
+                return res.json('No quote to delete')
+            }
+            res.json(`Deleted Darth Vader's quote`)
+        })
+        .catch(error => console.error(error))
     })
+
+    app.listen(process.env.PORT, () => {
+        
+    })
+
     })
     .catch(error => console.error(error))
 
